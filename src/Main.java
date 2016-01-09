@@ -1,5 +1,6 @@
 package com.medvedomg;
 
+
 import javafx.application.Application;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -30,7 +31,7 @@ public class Main extends Application {
 	private static int height;
 	private static Pane root;
 
-	private ListView list;
+	public ListView list;
 	private Stage primaryStage;
 	private static Socket client;
 	private static int flag;
@@ -90,6 +91,9 @@ public class Main extends Application {
 
 			send = new Button("Send");
 			send.relocate(width/2-100,600);
+
+
+
 			connect.setOnAction(new EventHandler<ActionEvent>() {
 
 									@Override
@@ -100,7 +104,9 @@ public class Main extends Application {
 
 												try {
 													System.out.println(serverName+" "+port);
-													client = new Socket(serverName, port);
+
+													connectServer(port,serverName);
+													System.out.println("Just connected to " + client.getRemoteSocketAddress());
 												} catch (IOException e1) {
 													e1.printStackTrace();
 												}
@@ -108,34 +114,13 @@ public class Main extends Application {
 										};
 
 										thread.start();
-
-										System.out.println("Just connected to " + client.getRemoteSocketAddress());
-//					launch(args);
-										try {
-
-											while (true) {
-
-												InputStream inFromServer = client.getInputStream();
-
-												DataInputStream in = new DataInputStream(inFromServer);
-
-												System.out.println("Server says " + in.readUTF());
-
-											}
-
-										} catch (Exception e) {
-											e.printStackTrace();
-										}
-
-										try {
-
-											client.close();
-
-										} catch (IOException e) {
-											e.printStackTrace();
-										}
-
 									}
+
+//					launch(args);
+
+
+
+
 
 									public void sendMessageToServer(String message) {
 
@@ -159,6 +144,15 @@ public class Main extends Application {
 			tfTextInput = new TextField();
 			tfTextInput.relocate(width/2-50, 600);
 
+
+			send.setOnAction(new EventHandler<ActionEvent>() {
+				@Override
+				public void handle(ActionEvent event) {
+					sendMessageToServer1(tfTextInput.getText());
+					list.getItems().add("Me: " + tfTextInput.getText());
+
+				}
+			});
 
 			root.getChildren().addAll(addNewItem,lIP,lPort,tfIP,tfPort,connect,rectangle,list,tfTextInput,send);
 
@@ -189,5 +183,66 @@ public class Main extends Application {
 			System.out.println("Connecting to " + serverName + " on port " + port);
 
 
-		}}}
+		}}
 
+	public static void sendMessageToServer1(String message) {
+
+		try {
+
+			OutputStream outToServer = client.getOutputStream();
+
+			DataOutputStream out = new DataOutputStream(outToServer);
+
+			out.writeUTF(message);
+
+
+		} catch (Exception e) {
+
+
+		}
+
+	}
+
+	public  void connectServer(int port, String serverName) throws IOException {
+
+		System.out.println("Test tfPort.getText()");
+
+		System.out.println("Connecting to " + serverName + " on port " + port);
+
+
+		client = new Socket(serverName, port);
+
+		System.out.println("Just connected to " + client.getRemoteSocketAddress());
+
+		sendMessageToServer1("Рш!");
+
+
+		InputStream inFromServer = client.getInputStream();
+		DataInputStream in = new DataInputStream(inFromServer);
+
+		boolean isConnected = true;
+		while (isConnected) {
+
+
+			String messageFromServer = null;
+			try {
+				messageFromServer = in.readUTF();
+			} catch (Exception e) {
+				isConnected = false;
+				messageFromServer = "";
+			}
+
+			System.out.println("Server says : " + messageFromServer);
+			//			l.setText("Server says : " + messageFromServer);
+
+			list.getItems().add("Server: " + messageFromServer);
+
+
+		}
+
+		client.close();
+	}
+
+
+
+}
