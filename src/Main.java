@@ -1,4 +1,4 @@
-
+package com.medvedomg;
 
 import javafx.application.Application;
 import javafx.event.ActionEvent;
